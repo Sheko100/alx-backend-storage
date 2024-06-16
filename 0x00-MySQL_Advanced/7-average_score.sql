@@ -3,6 +3,6 @@
 DELIMITER $$ ;
 CREATE PROCEDURE ComputeAverageScoreForUser(user_id int)
 BEGIN
- SELECT id, name, AVG(corrections.score) as average_score from users INNER JOIN corrections ON corrections.user_id=users.id GROUP BY users.id;
+ SELECT id, name, AVG(corrections.score) AS average_score from users LEFT JOIN corrections ON corrections.user_id=users.id GROUP BY users.id;
 END $$
 DELIMITER ; $$
