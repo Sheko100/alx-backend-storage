@@ -8,11 +8,9 @@ def schools_by_topic(mongo_collection, topic):
 
     docs = []
 
-    coll_docs = mongo_collection.find()
+    coll_docs = mongo_collection.find({'topics': topic})
 
     for doc in coll_docs:
-        print(doc)
-        if 'topics' in doc.keys() and topic in doc['topics']:
-            docs.append(doc)
+        docs.append(doc)
 
     return docs
