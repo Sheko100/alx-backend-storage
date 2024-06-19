@@ -1,9 +1,20 @@
 #!/usr/bin/env python3
 """Module that defines the Cache class
 """
+from functools import wraps
 import redis
 from typing import Union, Callable, List
 from uuid import uuid4
+
+
+def count_calls(method: Callable) -> Callable:
+    """Decorator function that count the methods calls
+    """
+    @wraps(method)
+    def wrapper(self, data):
+        self._redis.incr(method.__qualname__, 1)
+
+    return wrapper
 
 
 class Cache:
@@ -13,6 +24,7 @@ class Cache:
         self._redis = redis.Redis()
         self._redis.flushdb()
 
+    @count_calls
     def store(self, data: Union[str, bytes, int, float]) -> str:
         """Stores the data in redis with a new random key
 
