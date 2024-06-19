@@ -7,6 +7,26 @@ from typing import Union, Callable, List
 from uuid import uuid4
 
 
+def calling_history(method: Callable) -> Callable:
+    """Decorator function that stores methods inputs and outputs
+    in a list in redis
+    """
+    name = method.__qualname__
+    in_key = "{}:inputs".format(name)
+    out_key = "{}:outputs".format(name)
+
+    @wraps(method)
+    def wrapper(self, *args):
+        str_args = str(args)
+        self._redis.rpush(in_key, str_args)
+        out = method(self, *args)
+        self._redis.rpush(out_key, out)
+
+        return out
+
+    return wrapper
+
+
 def count_calls(method: Callable) -> Callable:
     """Decorator function that count the methods calls
     """
@@ -24,6 +44,7 @@ class Cache:
         self._redis = redis.Redis()
         self._redis.flushdb()
 
+    @calling_history
     @count_calls
     def store(self, data: Union[str, bytes, int, float]) -> str:
         """Stores the data in redis with a new random key
