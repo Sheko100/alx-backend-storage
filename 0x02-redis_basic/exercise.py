@@ -55,9 +55,8 @@ class Cache:
         Returns:
             new_key (str): the new key
         """
-        new_key = ''
+        new_key = str(uuid4())
         if data:
-            new_key = str(uuid4())
             self._redis.set(new_key, data)
 
         return new_key
