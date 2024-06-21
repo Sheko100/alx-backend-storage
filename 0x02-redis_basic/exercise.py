@@ -7,6 +7,19 @@ from typing import Union, Callable, List
 from uuid import uuid4
 
 
+def replay(method: Callable) -> None:
+    """Prints how the method is used"""
+    name = method.__qualname__
+    instance = method.__self__
+    called_times = instance.get_int(name)
+    print("{} was called {} times".format(name, called_times))
+    inputs = instance._redis.lrange("{}:inputs".format(name), 0, -1)
+    outputs = instance._redis.lrange("{}:outputs".format(name), 0, -1)
+    for ele in zip(inputs, outputs):
+        print("{}(*{}) -> {}".format(
+            name, ele[0].decode(), ele[1].decode()))
+
+
 def call_history(method: Callable) -> Callable:
     """Decorator function that stores methods inputs and outputs
     in a list in redis
@@ -17,7 +30,7 @@ def call_history(method: Callable) -> Callable:
 
     @wraps(method)
     def wrapper(self, *args):
-        str_args = str(*args)
+        str_args = str(args)
         self._redis.rpush(in_key, str_args)
         out = method(self, *args)
         self._redis.rpush(out_key, out)
